@@ -1,0 +1,12 @@
+
+[Anjuta]
+Maximized=1
+Geometry=1280x752+0+25
+
+[File Loader]
+Files=file:///home/davidb/awt/src/main.c#61%%%file:///home/davidb/awt/src/awt.glade
+
+[Execution]
+Program arguments=
+Run in terminal=2
+Last selected uri=file:///home/davidb/awt/src/awt
