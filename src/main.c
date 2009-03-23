@@ -28,6 +28,15 @@
 #include <gtk/gtk.h>
 #include <glade/glade.h>
 
+#include <pthread.h>
+#include "cv.h"
+#include "highgui.h"
+
+#include "Global.h"
+#include "callbacks.h"
+#include "frame_grabber.h"
+#include "callbacks.h"
+
 
 
 /*
@@ -54,7 +63,8 @@
 
 
 
-#include "callbacks.h"
+
+
 
 /* For testing propose use the local (not installed) glade file */
 /* #define GLADE_FILE PACKAGE_DATA_DIR"/awt/glade/awt.glade" */
@@ -70,16 +80,19 @@ create_window (void)
 	
 	/* This is important */
 	glade_xml_signal_autoconnect (gxml);
-	window = glade_xml_get_widget (gxml, "window");
+	window = glade_xml_get_widget (gxml, "window_main");
+	pImage = glade_xml_get_widget (gxml, "image1");
+	pChangePwdDialog = glade_xml_get_widget(gxml, "change_pwd_dialog");
 	
 	return window;
 }
-
 
 int
 main (int argc, char *argv[])
 {
  	GtkWidget *window;
+	pthread_t frame_grabber_thread;
+	
 
 
 #ifdef ENABLE_NLS
@@ -88,13 +101,19 @@ main (int argc, char *argv[])
 	textdomain (GETTEXT_PACKAGE);
 #endif
 
-	
+	g_thread_init(NULL);
+	gdk_threads_init();
 	gtk_set_locale ();
 	gtk_init (&argc, &argv);
 
-	window = create_window ();
+	window = GTK_WIDGET(create_window ());
 	gtk_widget_show (window);
-
+	
+	quit = 0;
+	pthread_create( &frame_grabber_thread, NULL, frame_grabber, NULL );
+	
+	g_timeout_add( 5, (GtkFunction)time_handler, NULL );
 	gtk_main ();
+	
 	return 0;
 }

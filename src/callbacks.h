@@ -18,3 +18,6 @@
  */
 
 #include <gtk/gtk.h>
+
+void on_window_main_destroy(GtkObject *object, gpointer user_data);
+void on_btn_change_pwd_clicked(GtkButton *button, gpointer user_data);

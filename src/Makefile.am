@@ -20,7 +20,9 @@ bin_PROGRAMS = awt
 awt_SOURCES = \
 	callbacks.c \
 	callbacks.h \
-	main.c
+	main.c \
+	Global.h \
+	frame_grabber.c
 
 awt_LDFLAGS = \
 	-Wl,--export-dynamic

@@ -19,8 +19,25 @@
 
 #ifdef HAVE_CONFIG_H
 #  include <config.h>
+
 #endif
 
 #include <gtk/gtk.h>
+#include <stdio.h>
 
 #include "callbacks.h"
+#include "Global.h"
+
+void on_window_main_destroy(GtkObject *object, gpointer user_data)
+{
+	quit = 1;
+	gtk_main_quit();
+}
+
+void on_btn_change_pwd_clicked(GtkButton *button, gpointer user_data)
+{
+	printf("is this working?");
+	gtk_widget_show_all(pChangePwdDialog);
+}
+
+
