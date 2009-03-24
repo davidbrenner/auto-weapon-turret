@@ -3,6 +3,9 @@
 Maximized=1
 Geometry=1680x977+0+25
 
+[File Loader]
+Files=file:///home/davidb/awt/src/callbacks.c#50%%%file:///home/davidb/awt/src/frame_grabber.c#38%%%file:///home/davidb/awt/src/main.c#86%%%file:///home/davidb/awt/src/Global.h#10%%%file:///home/davidb/awt/src/hash.c#11%%%file:///home/davidb/awt/src/password.c#6%%%file:///home/davidb/awt/src/password.h#1%%%file:///home/davidb/awt/src/gui_model.h#43%%%file:///home/davidb/awt/src/gui_model.c#1%%%file:///home/davidb/awt/src/callbacks.h#24%%%file:///home/davidb/awt/src/Makefile.am.bak#1%%%file:///home/davidb/awt/src/awt.glade
+
 [Execution]
 Program arguments=
 Program uri=file:///home/davidb/awt/src/awt
@@ -14,5 +17,8 @@ Environment variables=
 Configuration list=1:Default:%%%1:Debug:Debug%%%1:Profiling:Profiling%%%1:Optimized:Optimized
 Selected Configuration=Default
 
-[File Loader]
-Files=file:///home/davidb/awt/src/awt.glade
+[Debugger]
+Watch=pImage
+Breakpoint=1:file:///home/davidb/awt/src/callbacks.c:33:0:%%%1:file:///home/davidb/awt/src/main.c:86:0:%%%1:file:///home/davidb/awt/src/main.c:91:0:
+Source directories=
+Stop at beginning=2

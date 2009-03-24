@@ -36,6 +36,7 @@
 #include "callbacks.h"
 #include "frame_grabber.h"
 #include "callbacks.h"
+#include "gui_model.h"
 
 
 
@@ -73,16 +74,19 @@
 GtkWidget*
 create_window (void)
 {
-	GtkWidget *window;
-	GladeXML *gxml;
 	
 	gxml = glade_xml_new (GLADE_FILE, NULL, NULL);
 	
 	/* This is important */
 	glade_xml_signal_autoconnect (gxml);
-	window = glade_xml_get_widget (gxml, "window_main");
-	pImage = glade_xml_get_widget (gxml, "image1");
-	pChangePwdDialog = glade_xml_get_widget(gxml, "change_pwd_dialog");
+	
+	/* Grab all of the xml widget references */
+	window            = glade_xml_get_widget(gxml, "window_main");
+	pImage            = glade_xml_get_widget(gxml, "image1");
+	pChangePwdDialog  = glade_xml_get_widget(gxml, "change_pwd_dialog");
+	pPasswordDialog   = glade_xml_get_widget(gxml, "password_dialog");
+	pInvalidPwdDialog = glade_xml_get_widget(gxml, "invalid_pw_dialog");
+	pPasswordMismatchDialog = glade_xml_get_widget(gxml, "pw_missmatch_dialog");
 	
 	return window;
 }
@@ -90,6 +94,16 @@ create_window (void)
 int
 main (int argc, char *argv[])
 {
+	
+	/* Setup the GUI Model */
+	pGuiModel = NewGUIModel();
+	
+	if(pGuiModel == NULL)
+	{
+		printf("ERROR: Could not allocate GUI Model");
+		return 1;
+	}
+	
  	GtkWidget *window;
 	pthread_t frame_grabber_thread;
 	
@@ -112,7 +126,7 @@ main (int argc, char *argv[])
 	quit = 0;
 	pthread_create( &frame_grabber_thread, NULL, frame_grabber, NULL );
 	
-	g_timeout_add( 5, (GtkFunction)time_handler, NULL );
+	g_timeout_add( 50, (GtkFunction)time_handler, NULL );
 	gtk_main ();
 	
 	return 0;

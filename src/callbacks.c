@@ -23,6 +23,7 @@
 #endif
 
 #include <gtk/gtk.h>
+#include <glade/glade.h>
 #include <stdio.h>
 
 #include "callbacks.h"
@@ -36,8 +37,17 @@ void on_window_main_destroy(GtkObject *object, gpointer user_data)
 
 void on_btn_change_pwd_clicked(GtkButton *button, gpointer user_data)
 {
-	printf("is this working?");
-	gtk_widget_show_all(pChangePwdDialog);
+	gtk_widget_show((GtkDialog*)pChangePwdDialog);
+	    
 }
 
+void on_change_pwd_dialog_close(GtkButton *button, gpointer user_data)
+{
+	gtk_widget_hide(pChangePwdDialog);
+}
 
+void on_change_pw_cancel_btn_clicked(GtkButton *button, gpointer user_data)
+{
+	printf("what the fuck");
+	gtk_widget_hide(pChangePwdDialog);
+}

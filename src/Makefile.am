@@ -22,7 +22,11 @@ awt_SOURCES = \
 	callbacks.h \
 	main.c \
 	Global.h \
-	frame_grabber.c
+	frame_grabber.c \
+	password.h \
+	password.c \
+	gui_model.h \
+	gui_model.c
 
 awt_LDFLAGS = \
 	-Wl,--export-dynamic
