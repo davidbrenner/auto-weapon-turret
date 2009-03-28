@@ -87,6 +87,17 @@ create_window (void)
 	pPasswordDialog   = glade_xml_get_widget(gxml, "password_dialog");
 	pInvalidPwdDialog = glade_xml_get_widget(gxml, "invalid_pw_dialog");
 	pPasswordMismatchDialog = glade_xml_get_widget(gxml, "pw_missmatch_dialog");
+	pOldPWEntry       = glade_xml_get_widget(gxml, "old_pw_entry");
+	pNewPWEntry       = glade_xml_get_widget(gxml, "new_pw_entry");
+	pConfPWEntry      = glade_xml_get_widget(gxml, "conf_pw_entry");
+	pPWMismatchDialog = glade_xml_get_widget(gxml, "pw_mismatch_dialog");
+	pInvalidPWDialog  = glade_xml_get_widget(gxml, "invalid_pw_dialog");
+	pPWDialog         = glade_xml_get_widget(gxml, "password_dialog");
+	pPWEntry          = glade_xml_get_widget(gxml, "pw_entry");
+	pLockButton       = glade_xml_get_widget(gxml, "btn_lock_sys");
+	pUserButton       = glade_xml_get_widget(gxml, "rb_user");
+	pAutoButton       = glade_xml_get_widget(gxml, "rb_auto");
+	pTable1			  = glade_xml_get_widget(gxml, "table1");
 	
 	return window;
 }
@@ -125,6 +136,8 @@ main (int argc, char *argv[])
 	
 	quit = 0;
 	pthread_create( &frame_grabber_thread, NULL, frame_grabber, NULL );
+	
+	pthread_mutex_init(&frame_grab_mutex,NULL);
 	
 	g_timeout_add( 50, (GtkFunction)time_handler, NULL );
 	gtk_main ();

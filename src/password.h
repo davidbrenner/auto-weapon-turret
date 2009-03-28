@@ -11,7 +11,7 @@
 #define __HASH_H__
 
 /* Global functions */
-void SetPassword(char* pcPassword);
-int  ComparePassword(const char* pcPassword);
+void SetPassword(const char* pcPassword);
+int  CheckPassword(const char* pcPassword);
 
 #endif

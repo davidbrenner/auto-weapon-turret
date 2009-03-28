@@ -21,25 +21,25 @@
  *
  *
  *******************************************************/
-void SetPassword(char* pcPassword)
+void SetPassword(const char* pcPassword)
 {
 	
 } /* SetPassword */
 
 
 /*******************************************************
- * Function: ComparePassword
+ * Function: CheckPassword
  *
  * Args:     pcPassword -- Password String
  *
- * Returns:  0 -- Password does not match saved password
- *           else -- Password matches saved password
+ * Returns:  0 -- Password does matches saved password
+ *           else -- Password doesn't match saved password
  *
  * Compares the given password with the saved password
  *
  *
  *******************************************************/
-int  ComparePassword(const char* pcPassword)
+int  CheckPassword(const char* pcPassword)
 {
 	return strcmp(pcPassword, "password");
 } /* ComparePassword */

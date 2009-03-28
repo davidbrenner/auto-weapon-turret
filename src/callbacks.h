@@ -23,3 +23,13 @@ void on_window_main_destroy(GtkObject *object, gpointer user_data);
 void on_btn_change_pwd_clicked(GtkButton *button, gpointer user_data);
 void on_change_pwd_dialog_close(GtkButton *button, gpointer user_data);
 void on_change_pw_cancel_btn_clicked(GtkButton *button, gpointer user_data);
+void on_change_pw_OK_btn_clicked(GtkButton *button, gpointer user_data);
+void on_pw_missmatch_OK_btn_clicked(GtkButton *button, gpointer user_data);
+void on_invalid_pw_OK_btn_clicked(GtkButton *button, gpointer user_data);
+void on_btn_lock_sys_clicked(GtkButton *button, gpointer user_data);
+void on_pw_cancel_btn_clicked(GtkButton *button, gpointer user_data);
+void on_pw_OK_btn_clicked(GtkButton *button, gpointer user_data);
+void on_rb_auto_clicked(GtkButton *button, gpointer user_data);
+void on_rb_user_clicked(GtkButton *button, gpointer user_data);
+
+

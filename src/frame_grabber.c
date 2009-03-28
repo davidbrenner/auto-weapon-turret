@@ -4,6 +4,7 @@
 #include <gtk/gtk.h>
 #include "Global.h"
 #include "frame_grabber.h"
+#include <pthread.h>
 
 IplImage *gtkMask;
 IplImage* frame;
@@ -29,10 +30,13 @@ void convertOpenCv2Gtk(IplImage *image){
 // Updates the GTK image widget with the current frame
 gboolean time_handler(GtkWidget *widget)
 {
+	pthread_mutex_lock(&frame_grab_mutex);
 	if(!quit){
 		gtk_widget_queue_draw (pImage);
+		pthread_mutex_unlock(&frame_grab_mutex);
 		return TRUE;
 	}else
+		pthread_mutex_unlock(&frame_grab_mutex);
 		return FALSE;
 } 
 
@@ -58,6 +62,9 @@ void *frame_grabber(void * ptr)
     }
 
     while( !quit ) {
+		
+		pthread_mutex_lock(&frame_grab_mutex);
+		
         // Get one frame
         frame = cvQueryFrame( capture );
         if( !frame ) {
@@ -65,6 +72,8 @@ void *frame_grabber(void * ptr)
             break;
         }
 		cvCvtColor( frame, gtkMask, CV_BGR2RGB );
+		
+		pthread_mutex_unlock(&frame_grab_mutex);
     }
 
     // Release the capture device housekeeping
