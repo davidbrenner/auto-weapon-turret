@@ -24,6 +24,7 @@ GtkWidget *pLockButton;
 GtkWidget *pUserButton;
 GtkWidget *pAutoButton;
 GtkWidget *pTable1;
+GtkWidget *pFixed1;
 
 GladeXML *gxml;
 
@@ -32,7 +33,5 @@ PGUIMODEL pGuiModel;
 
 /* Global for quitting the frame grabber */
 int quit;
-
-pthread_mutex_t frame_grab_mutex;
 
 #endif

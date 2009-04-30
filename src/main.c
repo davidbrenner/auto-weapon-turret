@@ -17,6 +17,9 @@
  * with this program.  If not, see <http://www.gnu.org/licenses/>.
  */
 
+
+
+
 #include <sys/types.h>
 #include <sys/stat.h>
 #include <unistd.h>
@@ -37,7 +40,7 @@
 #include "frame_grabber.h"
 #include "callbacks.h"
 #include "gui_model.h"
-
+#include "joy_stick.h"
 
 
 /*
@@ -98,7 +101,7 @@ create_window (void)
 	pUserButton       = glade_xml_get_widget(gxml, "rb_user");
 	pAutoButton       = glade_xml_get_widget(gxml, "rb_auto");
 	pTable1			  = glade_xml_get_widget(gxml, "table1");
-	
+	pFixed1           = glade_xml_get_widget(gxml, "fixed1");
 	return window;
 }
 
@@ -137,10 +140,16 @@ main (int argc, char *argv[])
 	quit = 0;
 	pthread_create( &frame_grabber_thread, NULL, frame_grabber, NULL );
 	
-	pthread_mutex_init(&frame_grab_mutex,NULL);
-	
 	g_timeout_add( 50, (GtkFunction)time_handler, NULL );
+	
+	/* Setup joystick stuff */
+	do_it();
+	
+	/* Main gui processing */
 	gtk_main ();
+	
+	/* Joystick cleanup */
+	cleanup();
 	
 	return 0;
 }

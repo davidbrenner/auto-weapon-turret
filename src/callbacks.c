@@ -65,7 +65,8 @@ void on_change_pw_cancel_btn_clicked(GtkButton *button, gpointer user_data)
 }
 
 void on_change_pw_OK_btn_clicked(GtkButton *button, gpointer user_data)
-{
+{	
+	char* text;
 	/* Check to see if the OLD password is correct */
 	if( CheckPassword( gtk_entry_get_text( (GtkEntry*)pOldPWEntry ) ) == 0 )
 	{
@@ -74,8 +75,10 @@ void on_change_pw_OK_btn_clicked(GtkButton *button, gpointer user_data)
 			         gtk_entry_get_text( (GtkEntry*)pConfPWEntry ) ) == 0 )
 		{
 			
+			text = gtk_entry_get_text( (GtkEntry*)pNewPWEntry );
+			
 			/* Set the new password */
-			SetPassword( gtk_entry_get_text( (GtkEntry*)pNewPWEntry ) );
+			SetPassword(text);			
 			
 			gtk_widget_hide(pChangePwdDialog);
 		}
@@ -126,15 +129,13 @@ void on_pw_OK_btn_clicked(GtkButton *button, gpointer user_data)
 		{
 			pGuiModel->cStatus &= ~LOCKED;
 			gtk_button_set_label((GtkButton*)pLockButton, "Lock System");
-			gtk_widget_set_sensitive(pUserButton, TRUE);
-			gtk_widget_set_sensitive(pAutoButton, TRUE);
+			gtk_widget_show((GtkWidget*) pTable1);
 		}
 		else
 		{
 			pGuiModel->cStatus |= LOCKED;
 			gtk_button_set_label((GtkButton*)pLockButton, "Unlock System");
-			//gtk_widget_set_sensitive(pUserButton, FALSE);
-			gtk_widget_set_sensitive(pTable1, FALSE);
+			gtk_widget_hide((GtkWidget*) pTable1);
 		}
 		
 		gtk_widget_hide(pPWDialog);
@@ -154,6 +155,7 @@ void on_rb_user_clicked(GtkButton *button, gpointer user_data)
 {
 	pGuiModel->cStatus &= ~AUTO;
 }
+
 
 /* Helper functions */
 void ClearChangePWData(void)
