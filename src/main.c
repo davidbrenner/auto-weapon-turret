@@ -40,7 +40,9 @@
 #include "frame_grabber.h"
 #include "callbacks.h"
 #include "gui_model.h"
+#include "serial.h"
 #include "joy_stick.h"
+#include "blobtrack.h"
 
 
 /*
@@ -138,18 +140,34 @@ main (int argc, char *argv[])
 	gtk_widget_show (window);
 	
 	quit = 0;
-	pthread_create( &frame_grabber_thread, NULL, frame_grabber, NULL );
+//	pthread_create( &frame_grabber_thread, NULL, frame_grabber, NULL );
 	
 	g_timeout_add( 50, (GtkFunction)time_handler, NULL );
 	
+    /* Initialize serial */
+    //if(serial_init() != 0) return -1;
+
 	/* Setup joystick stuff */
-	do_it();
-	
+    //if(joy_stick_init() != 0) return -1;
+
+
+    /* Setup autonomous blobtracker */
+    if(adp_blobtrack_init() != 0) return -1;
+
+    /* Wait for webcam to settle */
+    while(!draw_ready){ usleep(1); };
+
 	/* Main gui processing */
 	gtk_main ();
+
+    /* Cleanup blobtracker */
+    adp_blobtrack_cleanup();
 	
 	/* Joystick cleanup */
-	cleanup();
+	//joy_stick_cleanup();
+
+    /* Clean up serial */
+    //serial_cleanup();
 	
 	return 0;
 }

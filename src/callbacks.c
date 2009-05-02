@@ -28,8 +28,8 @@
 #include <glade/glade.h>
 #include <stdio.h>
 
-#include "callbacks.h"
 #include "Global.h"
+#include "callbacks.h"
 #include "password.h"
 #include <string.h>
 

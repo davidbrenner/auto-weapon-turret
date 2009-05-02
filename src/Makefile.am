@@ -26,7 +26,14 @@ awt_SOURCES = \
 	password.h \
 	password.c \
 	gui_model.h \
-	gui_model.c
+	gui_model.c \
+	joy_stick.h \
+	joy_stick.c \
+	Md5.c \
+	Md5.h \
+	serial.c \
+	serial.h \
+	blobtrack.cpp
 
 awt_LDFLAGS = \
 	-Wl,--export-dynamic
