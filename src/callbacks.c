@@ -66,7 +66,7 @@ void on_change_pw_cancel_btn_clicked(GtkButton *button, gpointer user_data)
 
 void on_change_pw_OK_btn_clicked(GtkButton *button, gpointer user_data)
 {	
-	char* text;
+	const char* text;
 	/* Check to see if the OLD password is correct */
 	if( CheckPassword( gtk_entry_get_text( (GtkEntry*)pOldPWEntry ) ) == 0 )
 	{
@@ -124,18 +124,35 @@ void on_pw_OK_btn_clicked(GtkButton *button, gpointer user_data)
 	/* Check the password */
 	if( CheckPassword(gtk_entry_get_text((GtkEntry*)pPWEntry)) == 0)
 	{
-		
 		if( ( (pGuiModel->cStatus)&LOCK ) == LOCKED )
 		{
 			pGuiModel->cStatus &= ~LOCKED;
 			gtk_button_set_label((GtkButton*)pLockButton, "Lock System");
 			gtk_widget_show((GtkWidget*) pTable1);
+			gtk_widget_show((GtkWidget*) pCalibrateBtn);
+			if((pGuiModel->cStatus & MODE) == USER)
+			{
+				gtk_window_set_title((GtkWindow*)window, "AWT -- (USER, UNLOCKED)");
+			}
+			else
+			{
+				gtk_window_set_title((GtkWindow*)window, "AWT -- (AUTO, UNLOCKED)");
+			}
 		}
 		else
 		{
 			pGuiModel->cStatus |= LOCKED;
 			gtk_button_set_label((GtkButton*)pLockButton, "Unlock System");
 			gtk_widget_hide((GtkWidget*) pTable1);
+			gtk_widget_hide(pCalibrateBtn);
+			if((pGuiModel->cStatus & MODE) == USER)
+			{
+				gtk_window_set_title((GtkWindow*)window, "AWT -- (USER, LOCKED)");
+			}
+			else
+			{
+				gtk_window_set_title((GtkWindow*)window, "AWT -- (AUTO, LOCKED)");
+			}
 		}
 		
 		gtk_widget_hide(pPWDialog);
@@ -149,13 +166,40 @@ void on_pw_OK_btn_clicked(GtkButton *button, gpointer user_data)
 void on_rb_auto_clicked(GtkButton *button, gpointer user_data)
 {
 	pGuiModel->cStatus |= AUTO;
+	gtk_widget_hide(pCalibrateBtn);
+	gtk_window_set_title((GtkWindow*)window, "AWT -- (AUTO, UNLOCKED)");
+	//gtk_widget_set_sensitive(pCalibrateBtn, FALSE);
+	
 }
 
 void on_rb_user_clicked(GtkButton *button, gpointer user_data)
 {
 	pGuiModel->cStatus &= ~AUTO;
+	gtk_widget_show(pCalibrateBtn);
+	gtk_window_set_title((GtkWindow*)window, "AWT -- (USER, UNLOCKED)");
+	//gtk_widget_set_sensitive(pCalibrateBtn, TRUE);
 }
 
+void on_calibrate_btn_clicked(GtkButton *button, gpointer user_data)
+{
+	if((pGuiModel->cStatus & CALIBRATE) == DONE)
+	{
+		gtk_button_set_label((GtkButton*)pCalibrateBtn, "Done");
+		gtk_widget_hide((GtkWidget*) pTable1);
+		gtk_widget_hide((GtkWidget*) pCngPwButton);
+		gtk_widget_hide((GtkWidget*) pLockButton);
+		pGuiModel->cStatus &= ~CALIBRATE;
+		pGuiModel->cStatus |= S1;
+	}
+	else
+	{
+		gtk_button_set_label((GtkButton*)pCalibrateBtn, "Calibrate");
+		gtk_widget_show((GtkWidget*) pTable1);
+		gtk_widget_show((GtkWidget*) pCngPwButton);
+		gtk_widget_show((GtkWidget*) pLockButton);
+		pGuiModel->cStatus &= ~CALIBRATE;
+	}
+}
 
 /* Helper functions */
 void ClearChangePWData(void)

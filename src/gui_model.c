@@ -26,7 +26,6 @@
 	if( pModel = (PGUIMODEL)malloc(sizeof(GUIMODEL)) )
 	{
 		pModel->cStatus = 0x00;
-		pModel->iTargDist = 0;
 		return pModel;
 	}
 	return NULL;

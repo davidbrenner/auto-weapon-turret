@@ -104,6 +104,8 @@ create_window (void)
 	pAutoButton       = glade_xml_get_widget(gxml, "rb_auto");
 	pTable1			  = glade_xml_get_widget(gxml, "table1");
 	pFixed1           = glade_xml_get_widget(gxml, "fixed1");
+	pCalibrateBtn     = glade_xml_get_widget(gxml, "calibrate_btn");
+	pCngPwButton      = glade_xml_get_widget(gxml, "btn_change_pwd");
 	return window;
 }
 
@@ -121,7 +123,6 @@ main (int argc, char *argv[])
 	}
 	
  	GtkWidget *window;
-	pthread_t frame_grabber_thread;
 	
 
 
@@ -140,16 +141,14 @@ main (int argc, char *argv[])
 	gtk_widget_show (window);
 	
 	quit = 0;
-//	pthread_create( &frame_grabber_thread, NULL, frame_grabber, NULL );
 	
 	g_timeout_add( 50, (GtkFunction)time_handler, NULL );
 	
     /* Initialize serial */
-    //if(serial_init() != 0) return -1;
+    if(serial_init() != 0) return -1;
 
 	/* Setup joystick stuff */
     //if(joy_stick_init() != 0) return -1;
-
 
     /* Setup autonomous blobtracker */
     if(adp_blobtrack_init() != 0) return -1;
@@ -167,7 +166,7 @@ main (int argc, char *argv[])
 	//joy_stick_cleanup();
 
     /* Clean up serial */
-    //serial_cleanup();
+    serial_cleanup();
 	
 	return 0;
 }

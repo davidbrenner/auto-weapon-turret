@@ -6,6 +6,8 @@
 #include <sched.h>
 #include "Global.h"
 #include "serial.h"
+#include "translate.h"
+#include "gui_model.h"
 
 #define MY_STRNICMP strncasecmp
 #define MY_STRICMP strcasecmp
@@ -135,7 +137,6 @@ void convertOpenCv2Gtk(IplImage *image){
             NULL);
     draw_ready = 1;
     gtk_image_set_from_pixbuf( (GtkImage *) pImage, pix );
-    printf("everything /should/ be set\n");
 } 
 
 /* run pipeline on all frames */
@@ -180,7 +181,6 @@ static int RunBlobTrackingAuto()
         /* Process */
         pTracker->Process(pImg, pMask);
 
-        //if(fgavi_name)
         if(pTracker->GetFGMask())
         {/* debug FG */
             IplImage*           pFG = pTracker->GetFGMask();
@@ -196,39 +196,45 @@ static int RunBlobTrackingAuto()
                 int max_size = 0;
                 int cur_max = -1;
                 int size_i = 0;
-                for(i=pTracker->GetBlobNum();i>0;i--)
-                {
-                    CvBlob* pB = pTracker->GetBlob(i-1);
-                    CvSize  s = cvSize(MAX(1,cvRound(CV_BLOB_RX(pB))), MAX(1,cvRound(CV_BLOB_RY(pB))));
-                    size_i = s.width * s.height;
-                    if(size_i > max_size){
-                        cur_max = CV_BLOB_ID(pB);
-                        max_size = size_i;
-                    }
-                }/* next blob */;
-                if(cur_max != -1){
-                    CvBlob* pB = pTracker->GetBlob(cur_max);
-                    if(pB!=NULL){
-                        CvPoint p = cvPointFrom32f(CV_BLOB_CENTER(pB));
+                /* Make sure we're in autonomous mode */
+                if((pGuiModel->cStatus & MODE) == AUTO){
+                    for(i=pTracker->GetBlobNum();i>0;i--)
+                    {
+                        CvBlob* pB = pTracker->GetBlob(i-1);
                         CvSize  s = cvSize(MAX(1,cvRound(CV_BLOB_RX(pB))), MAX(1,cvRound(CV_BLOB_RY(pB))));
-                        printf("tracking cur biggest blob %d at: %d,%d size: %dx%d\n",CV_BLOB_ID(pB),p.x,p.y,s.width,s.height);
-                        if(prev_max != cur_max){
-                            prev_max_count = 0;
-                            prev_max = cur_max;
-                        }else {
-                            ++prev_max_count;
-//                            move_x(p.x);
-//                            move_y(p.y);
+                        size_i = s.width * s.height;
+                        if(size_i > max_size){
+                            cur_max = CV_BLOB_ID(pB);
+                            max_size = size_i;
                         }
-                        if(prev_max_count > 5){
-//                            fire();
+                    }/* next blob */;
+                    if(cur_max != -1){
+                        CvBlob* pB = pTracker->GetBlob(cur_max);
+                        if(pB!=NULL){
+                            CvPoint p = cvPointFrom32f(CV_BLOB_CENTER(pB));
+                            CvSize  s = cvSize(MAX(1,cvRound(CV_BLOB_RX(pB))), MAX(1,cvRound(CV_BLOB_RY(pB))));
+                            printf("tracking cur biggest blob %d at: %d,%d size: %dx%d\n",CV_BLOB_ID(pB),p.x,p.y,s.width,s.height);
+                            /* ensure this has been the biggest blob for 1 frame before moving, 5 frames before firing at it */
+                            if(prev_max != cur_max){
+                                prev_max_count = 0;
+                                prev_max = cur_max;
+                            }else {
+                                ++prev_max_count;
+                                move_x(x_pix_to_pwm(p.x));
+                                printf("x pos (pwm): %d\n",x_pix_to_pwm(p.x));
+                                move_y(y_pix_to_pwm(p.y));
+                                printf("y pos (pwm): %d\n",y_pix_to_pwm(p.y));
+                            }
+                            if(prev_max_count > 5){
+                                //                            fire();
+                            }
                         }
                     }
                 }
             }
 
-            //cvNamedWindow( "FG",0);
-            //cvShowImage( "FG",pFG);
+            cvNamedWindow( "FG",0);
+            cvShowImage( "FG",pFG);
         }/* debug FG*/
 
 
@@ -308,7 +314,7 @@ static void print_params(CvVSModule* pM, char* module, char* log_name)
 }/* print_params */
 
 void *tracker_thread_function(void * ptr){
-    printf("thread started\n");
+    printf("blobtracking thread started\n");
     RunBlobTrackingAuto();
 }
 
@@ -390,15 +396,15 @@ int blobtrack_init(void)
     for(pBTAnalysisModule=BlobTrackAnalysis_Modules;pBTAnalysisModule->nickname;++pBTAnalysisModule)
         if( bta_name && MY_STRICMP(bta_name,pBTAnalysisModule->nickname)==0 ) break;
 
-        pCap = cvCaptureFromCAM( CV_CAP_ANY );
-        printf("%f x %f\n", 
-                cvGetCaptureProperty(pCap, CV_CAP_PROP_FRAME_WIDTH),
-                cvGetCaptureProperty(pCap, CV_CAP_PROP_FRAME_HEIGHT));
-        cvSetCaptureProperty(pCap, CV_CAP_PROP_FRAME_WIDTH, 320);
-        cvSetCaptureProperty(pCap, CV_CAP_PROP_FRAME_HEIGHT, 240);
-        printf("%f x %f\n", 
-                cvGetCaptureProperty(pCap, CV_CAP_PROP_FRAME_WIDTH),
-                cvGetCaptureProperty(pCap, CV_CAP_PROP_FRAME_HEIGHT));
+    pCap = cvCaptureFromCAM( CV_CAP_ANY );
+    printf("%f x %f\n", 
+            cvGetCaptureProperty(pCap, CV_CAP_PROP_FRAME_WIDTH),
+            cvGetCaptureProperty(pCap, CV_CAP_PROP_FRAME_HEIGHT));
+    cvSetCaptureProperty(pCap, CV_CAP_PROP_FRAME_WIDTH, 320);
+    cvSetCaptureProperty(pCap, CV_CAP_PROP_FRAME_HEIGHT, 240);
+    printf("%f x %f\n", 
+            cvGetCaptureProperty(pCap, CV_CAP_PROP_FRAME_WIDTH),
+            cvGetCaptureProperty(pCap, CV_CAP_PROP_FRAME_HEIGHT));
     if(pCap==NULL)
     {
         printf("Can't open %s file\n",avi_name);
@@ -433,13 +439,11 @@ int blobtrack_init(void)
         param.pBTGen = NULL;
         if(pBTGenModule && track_name && pBTGenModule->create)
         {
-            printf("fuck we're making a trajectory gen module\n");
             param.pBTGen = pBTGenModule->create();
             param.pBTGen->SetFileName(track_name);
         }
         if(param.pBTGen)
         {
-            printf("fuck we're making a trajectory gen module\n");
             param.pBTGen->SetNickName(pBTGenModule->nickname);
             //set_params(argc, argv, param.pBTGen, "btgen", pBTGenModule->nickname);
         }
@@ -498,14 +502,14 @@ extern "C" {
 
 
 /*
-int main(int argc, char* argv[])
-{
+   int main(int argc, char* argv[])
+   {
 
-    blobtrack_init();
+   blobtrack_init();
 
-    RunBlobTrackingAuto();//pCap, pTracker, fgavi_name, btavi_name );
+   RunBlobTrackingAuto();//pCap, pTracker, fgavi_name, btavi_name );
 
-    blobtrack_cleanup();
+   blobtrack_cleanup();
 
-    return 0;
-}*/
+   return 0;
+   }*/

@@ -33,7 +33,9 @@ awt_SOURCES = \
 	Md5.h \
 	serial.c \
 	serial.h \
-	blobtrack.cpp
+	blobtrack.cpp \
+	translate.c \
+	translate.h
 
 awt_LDFLAGS = \
 	-Wl,--export-dynamic

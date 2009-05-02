@@ -28,10 +28,12 @@ GtkWidget *pInvalidPWDialog;
 GtkWidget *pPWDialog;
 GtkWidget *pPWEntry;
 GtkWidget *pLockButton;
+GtkWidget *pCngPwButton;
 GtkWidget *pUserButton;
 GtkWidget *pAutoButton;
 GtkWidget *pTable1;
 GtkWidget *pFixed1;
+GtkWidget *pCalibrateBtn;
 
 GladeXML *gxml;
 
