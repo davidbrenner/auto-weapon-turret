@@ -1,4 +1,4 @@
-// code from: http://coding.derkeiler.com/Archive/General/comp.programming/2007-05/msg00480.html
+// Some of this code is from examples available at: http://coding.derkeiler.com/Archive/General/comp.programming/2007-05/msg00480.html
 
 #include <stdio.h>
 #include <sys/types.h>
@@ -59,6 +59,8 @@ static pthread_t joy_thread, x_axis_thread, y_axis_thread, fire_thread;
 int joy_stick_init (void)
 {	
     int jt_ret, xt_ret, yt_ret, ft_ret;
+    pthread_mutex_init(&joystick_mode_mutex, NULL);
+    pthread_cond_init(&joystick_mode_cond, NULL);
 
     pad.fd = open("/dev/input/js0", O_RDONLY);
     if (pad.fd > 0)
@@ -86,6 +88,7 @@ int joy_stick_init (void)
         fprintf (stderr,"failed to open /dev/input/js0\n");
         return -1;
     }
+
     jt_ret = pthread_create( &joy_thread, NULL, joy_thread_function, NULL);
     xt_ret = pthread_create( &x_axis_thread, NULL, x_axis_thread_function, NULL);
     yt_ret = pthread_create( &y_axis_thread, NULL, y_axis_thread_function, NULL);
@@ -95,10 +98,10 @@ int joy_stick_init (void)
 
 void joy_stick_cleanup(void)
 {
-    pthread_join( joy_thread, NULL );
-    pthread_join( x_axis_thread, NULL );
-    pthread_join( y_axis_thread, NULL );
-    pthread_join( fire_thread, NULL );
+//    pthread_join( joy_thread, NULL );
+//    pthread_join( x_axis_thread, NULL );
+//    pthread_join( y_axis_thread, NULL );
+//    pthread_join( fire_thread, NULL );
     close(pad.fd);
 }
 
@@ -106,6 +109,13 @@ void *joy_thread_function(void * ptr)
 {
     while (!quit)
     {
+        pthread_mutex_lock( &joystick_mode_mutex );
+        while((pGuiModel->cStatus & MODE) == AUTO){
+            printf("joythread waiting...\n");
+            pthread_cond_wait( &joystick_mode_cond, &joystick_mode_mutex );
+            printf("joythread done waiting!\n");
+        }
+        pthread_mutex_unlock( &joystick_mode_mutex );
         int result = read(pad.fd, &pad.ev, sizeof(pad.ev));
         if (result > 0)
         {
@@ -161,6 +171,11 @@ void *x_axis_thread_function(void * ptr)
     printf("---x thread started\n");
     while(!quit)
     {
+        pthread_mutex_lock( &joystick_mode_mutex );
+        while((pGuiModel->cStatus & MODE) == AUTO){
+            pthread_cond_wait( &joystick_mode_cond, &joystick_mode_mutex );
+        }
+        pthread_mutex_unlock( &joystick_mode_mutex );
 		if((pGuiModel->cStatus & MODE) == USER)
 		{
     		tmpPos = pad.aPos[0];
@@ -198,6 +213,11 @@ void *fire_thread_function(void * ptr)
 	printf("---fire thread started\n");
     while(!quit)
     {
+        pthread_mutex_lock( &joystick_mode_mutex );
+        while((pGuiModel->cStatus & MODE) == AUTO){
+            pthread_cond_wait( &joystick_mode_cond, &joystick_mode_mutex );
+        }
+        pthread_mutex_unlock( &joystick_mode_mutex );
 		if((pGuiModel->cStatus & MODE) == USER)
 		{
 			if(pad.bPos[0] == 1 && !firing)
@@ -254,6 +274,11 @@ void *y_axis_thread_function(void * ptr)
     printf("---y thread started\n");
     while(!quit)
     {
+        pthread_mutex_lock( &joystick_mode_mutex );
+        while((pGuiModel->cStatus & MODE) == AUTO){
+            pthread_cond_wait( &joystick_mode_cond, &joystick_mode_mutex );
+        }
+        pthread_mutex_unlock( &joystick_mode_mutex );
 		if((pGuiModel->cStatus & MODE) == USER)
 		{	
 		    tmpPos = pad.aPos[1];

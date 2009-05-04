@@ -31,7 +31,6 @@
 #include "Global.h"
 #include "callbacks.h"
 #include "password.h"
-#include <string.h>
 
 /* Private helpers */
 static void ClearChangePWData(void);
@@ -176,6 +175,10 @@ void on_rb_user_clicked(GtkButton *button, gpointer user_data)
 {
 	pGuiModel->cStatus &= ~AUTO;
 	gtk_widget_show(pCalibrateBtn);
+    pthread_mutex_lock( &joystick_mode_mutex );
+    printf("broadcasting to joystick code\n");
+    pthread_cond_broadcast( &joystick_mode_cond );
+    pthread_mutex_unlock( &joystick_mode_mutex );
 	gtk_window_set_title((GtkWindow*)window, "AWT -- (USER, UNLOCKED)");
 	//gtk_widget_set_sensitive(pCalibrateBtn, TRUE);
 }

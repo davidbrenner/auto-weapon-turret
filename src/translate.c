@@ -14,8 +14,8 @@
 /* Private Variables */
 static int calibrated_x_min = 1205; 
 static int calibrated_x_max = 1533;
-static int calibrated_y_min = 1460;
-static int calibrated_y_max = 1232;
+static int calibrated_y_min = 1416;
+static int calibrated_y_max = 1240;
 static int max_x_coordinate = 640;
 static int max_y_coordinate = 480;
 

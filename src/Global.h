@@ -56,4 +56,8 @@ servos servo;
 
 char draw_ready;
 
+/* Mutexes used for joy stick threads suspend */
+pthread_mutex_t joystick_mode_mutex;
+pthread_cond_t joystick_mode_cond;
+
 #endif

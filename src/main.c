@@ -148,7 +148,7 @@ main (int argc, char *argv[])
     if(serial_init() != 0) return -1;
 
 	/* Setup joystick stuff */
-    //if(joy_stick_init() != 0) return -1;
+    if(joy_stick_init() != 0) return -1;
 
     /* Setup autonomous blobtracker */
     if(adp_blobtrack_init() != 0) return -1;
@@ -163,7 +163,7 @@ main (int argc, char *argv[])
     adp_blobtrack_cleanup();
 	
 	/* Joystick cleanup */
-	//joy_stick_cleanup();
+	joy_stick_cleanup();
 
     /* Clean up serial */
     serial_cleanup();

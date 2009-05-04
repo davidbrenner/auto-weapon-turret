@@ -51,7 +51,7 @@ int move_x(int xPos)
 {
     int ret = 0;
     if(xPos>MAX_X_PWM || xPos<MIN_X_PWM) return -1;
-    printf("cur x: %d",xPos);
+    printf("cur x: %d\n",xPos);
     pthread_mutex_lock( &serial_mutex );
     sprintf(out, "#%04d$", xPos);
     ret = write(serial_fd,out,6);
@@ -74,7 +74,7 @@ int move_y(int yPos)
 {
     int ret = 0;
     if(yPos>MAX_Y_PWM || yPos<MIN_Y_PWM) return -1;
-    printf("cur y: %d",yPos);
+    printf("cur y: %d\n",yPos);
     pthread_mutex_lock( &serial_mutex );
     sprintf(out, "#y%04d$", yPos);
     ret = write(serial_fd,out,7);

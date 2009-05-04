@@ -18,6 +18,7 @@ IplImage*   gtkMask = NULL;
 static pthread_t tracker_thread;
 int prev_max = -1;
 int prev_max_count = 0;
+int last_fired = 0;
 
 /* list of FG DETECTION modules */
 static CvFGDetector* cvCreateFGDetector0(){return cvCreateFGDetectorBase(CV_BG_MODEL_FGD, NULL);}
@@ -176,7 +177,6 @@ static int RunBlobTrackingAuto()
         //cvShowImage( "Tracking",pImg );
         if(pImg == NULL) break;
 
-		cvCvtColor( pImg, gtkMask, CV_BGR2RGB );
 
         /* Process */
         pTracker->Process(pImg, pMask);
@@ -224,18 +224,80 @@ static int RunBlobTrackingAuto()
                                 printf("x pos (pwm): %d\n",x_pix_to_pwm(p.x));
                                 move_y(y_pix_to_pwm(p.y));
                                 printf("y pos (pwm): %d\n",y_pix_to_pwm(p.y));
+                                last_fired++;
                             }
-                            if(prev_max_count > 5){
-                                //                            fire();
+                            if(prev_max_count > 10 && last_fired > 10){
+                                                            fire();
+                                                            last_fired = 0;
                             }
                         }
                     }
                 }
             }
 
-            cvNamedWindow( "FG",0);
-            cvShowImage( "FG",pFG);
+
+
+        /* draw debug info */
+        if(pImg)
+        {/* draw all inforamtion about tets sequence */
+            char        str[1024];
+            int         line_type = CV_AA; // change it to 8 to see non-antialiased graphics
+            CvFont      font;
+            int         i;
+            IplImage*   pI = cvCloneImage(pImg);
+
+            cvInitFont( &font, CV_FONT_HERSHEY_PLAIN, 0.7, 0.7, 0, 1, line_type );
+
+            for(i=pTracker->GetBlobNum();i>0;i--)
+            {
+                CvSize  TextSize;
+                CvBlob* pB = pTracker->GetBlob(i-1);
+                CvPoint p = cvPoint(cvRound(pB->x*256),cvRound(pB->y*256));
+                CvSize  s = cvSize(MAX(1,cvRound(CV_BLOB_RX(pB)*256)), MAX(1,cvRound(CV_BLOB_RY(pB)*256)));
+                int c = cvRound(255*pTracker->GetState(CV_BLOB_ID(pB)));
+
+                cvEllipse( pI,
+                    p,
+                    s,
+                    0, 0, 360,
+                    CV_RGB(c,255-c,0), cvRound(1+(3*0)/255), CV_AA, 8 );
+                p.x >>= 8;
+                p.y >>= 8;
+                s.width >>= 8;
+                s.height >>= 8;
+                sprintf(str,"%03d",CV_BLOB_ID(pB));
+                cvGetTextSize( str, &font, &TextSize, NULL );
+                p.y -= s.height;
+                cvPutText( pI, str, p, &font, CV_RGB(0,255,255));
+                {
+                    char* pS = pTracker->GetStateDesc(CV_BLOB_ID(pB));
+                    if(pS)
+                    {
+                        char* pStr = strdup(pS);
+                        char* pStrFree = pStr;
+                        for(;pStr && strlen(pStr)>0;)
+                        {
+                            char* str_next = strchr(pStr,'\n');
+                            if(str_next)
+                            {
+                                str_next[0] = 0;
+                                str_next++;
+                            }
+                            p.y += TextSize.height+1;
+                            cvPutText( pI, pStr, p, &font, CV_RGB(0,255,255));
+                            pStr = str_next;
+                        }
+                        free(pStrFree);
+                    }
+                }
+
+            }/* next blob */;
+		cvCvtColor( pI, gtkMask, CV_BGR2RGB );
+
+//            cvNamedWindow( "FG",0);
+//            cvShowImage( "FG",pFG);
         }/* debug FG*/
+        }
 
 
     }/* main cicle */
