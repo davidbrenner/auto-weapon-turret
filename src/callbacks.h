@@ -33,4 +33,3 @@ void on_rb_auto_clicked(GtkButton *button, gpointer user_data);
 void on_rb_user_clicked(GtkButton *button, gpointer user_data);
 void on_calibrate_btn_clicked(GtkButton *button, gpointer user_data);
 
-

@@ -94,8 +94,8 @@ DefModule_BlobTrackPostProc BlobTrackPostProc_Modules[] =
 {
     {cvCreateModuleBlobTrackPostProcKalman,"Kalman","Kalman filtering of blob position and size"},
     {NULL,"None","No post processing filter"},
-//    {cvCreateModuleBlobTrackPostProcTimeAverRect,"TimeAverRect","Average by time using rectangle window"},
-//    {cvCreateModuleBlobTrackPostProcTimeAverExp,"TimeAverExp","Average by time using exponential window"},
+    //    {cvCreateModuleBlobTrackPostProcTimeAverRect,"TimeAverRect","Average by time using rectangle window"},
+    //    {cvCreateModuleBlobTrackPostProcTimeAverExp,"TimeAverExp","Average by time using exponential window"},
     {NULL,NULL,NULL}
 };
 
@@ -148,21 +148,21 @@ static int RunBlobTrackingAuto()
     int                     FrameNum = 0;
     CvVideoWriter*          pFGAvi = NULL;
     CvVideoWriter*          pBTAvi = NULL;
-        IplImage*   pImg = NULL;
+    IplImage*   pImg = NULL;
 
     //cvNamedWindow( "FG", 0 );
-        pImg = cvQueryFrame(pCap);
-        if(pImg!=NULL){
-            gtkMask = cvCreateImage( cvGetSize(pImg), 8, 3);
-            convertOpenCv2Gtk(pImg);
-            sched_yield();
-        }
+    pImg = cvQueryFrame(pCap);
+    if(pImg!=NULL){
+        gtkMask = cvCreateImage( cvGetSize(pImg), 8, 3);
+        convertOpenCv2Gtk(pImg);
+        sched_yield();
+    }
 
 
-        //cvNamedWindow( "Tracking", CV_WINDOW_AUTOSIZE );
+    //cvNamedWindow( "Tracking", CV_WINDOW_AUTOSIZE );
     /* main cicle */
     for( FrameNum=0; pCap && !quit;
-         FrameNum++)
+            FrameNum++)
     {/* main cicle */
         IplImage*   pMask = NULL;
         pImg = NULL;
@@ -181,59 +181,54 @@ static int RunBlobTrackingAuto()
         /* Process */
         pTracker->Process(pImg, pMask);
 
-        if(pTracker->GetFGMask())
-        {/* debug FG */
-            IplImage*           pFG = pTracker->GetFGMask();
-            CvSize              S = cvSize(pFG->width,pFG->height);
-            static IplImage*    pI = NULL;
+        if(pTracker->GetBlobNum()>0)
+        {/* draw detected blobs */
+            int i;
+            int max_size = 0;
+            int cur_max = -1;
+            int size_i = 0;
+            /* Make sure we're in autonomous mode */
+            if((pGuiModel->cStatus & MODE) == AUTO){
+                /* Iterate over all blobs to find the biggest */
+                for(i=pTracker->GetBlobNum();i>0;i--)
+                {
+                    CvBlob* pB = pTracker->GetBlob(i-1);
+                    CvSize  s = cvSize(MAX(1,cvRound(CV_BLOB_RX(pB))), MAX(1,cvRound(CV_BLOB_RY(pB))));
+                    size_i = s.width * s.height;
+                    if(size_i > max_size){
+                        cur_max = CV_BLOB_ID(pB);
+                        max_size = size_i;
+                    }
+                }/* next blob */;
 
-            if(pI==NULL)pI = cvCreateImage(S,pFG->depth,3);
-            cvCvtColor( pFG, pI, CV_GRAY2BGR );
-
-            if(pTracker->GetBlobNum()>0)
-            {/* draw detected blobs */
-                int i;
-                int max_size = 0;
-                int cur_max = -1;
-                int size_i = 0;
-                /* Make sure we're in autonomous mode */
-                if((pGuiModel->cStatus & MODE) == AUTO){
-                    for(i=pTracker->GetBlobNum();i>0;i--)
-                    {
-                        CvBlob* pB = pTracker->GetBlob(i-1);
+                /* If we have a current maximum, get its coordinates and aim at it. */
+                if(cur_max != -1){
+                    CvBlob* pB = pTracker->GetBlob(cur_max);
+                    if(pB!=NULL){
+                        CvPoint p = cvPointFrom32f(CV_BLOB_CENTER(pB));
                         CvSize  s = cvSize(MAX(1,cvRound(CV_BLOB_RX(pB))), MAX(1,cvRound(CV_BLOB_RY(pB))));
-                        size_i = s.width * s.height;
-                        if(size_i > max_size){
-                            cur_max = CV_BLOB_ID(pB);
-                            max_size = size_i;
+                        printf("tracking cur biggest blob %d at: %d,%d size: %dx%d\n",CV_BLOB_ID(pB),p.x,p.y,s.width,s.height);
+                        /* ensure this has been the biggest blob for 1 frame before moving, 10 frames before firing at it */
+                        if(prev_max != cur_max){
+                            prev_max_count = 0;
+                            prev_max = cur_max;
+                        }else {
+                            ++prev_max_count;
+                            move_x(x_pix_to_pwm(p.x));
+                            printf("x pos (pwm): %d\n",x_pix_to_pwm(p.x));
+                            move_y(y_pix_to_pwm(p.y));
+                            printf("y pos (pwm): %d\n",y_pix_to_pwm(p.y));
+                            last_fired++;
                         }
-                    }/* next blob */;
-                    if(cur_max != -1){
-                        CvBlob* pB = pTracker->GetBlob(cur_max);
-                        if(pB!=NULL){
-                            CvPoint p = cvPointFrom32f(CV_BLOB_CENTER(pB));
-                            CvSize  s = cvSize(MAX(1,cvRound(CV_BLOB_RX(pB))), MAX(1,cvRound(CV_BLOB_RY(pB))));
-                            printf("tracking cur biggest blob %d at: %d,%d size: %dx%d\n",CV_BLOB_ID(pB),p.x,p.y,s.width,s.height);
-                            /* ensure this has been the biggest blob for 1 frame before moving, 5 frames before firing at it */
-                            if(prev_max != cur_max){
-                                prev_max_count = 0;
-                                prev_max = cur_max;
-                            }else {
-                                ++prev_max_count;
-                                move_x(x_pix_to_pwm(p.x));
-                                printf("x pos (pwm): %d\n",x_pix_to_pwm(p.x));
-                                move_y(y_pix_to_pwm(p.y));
-                                printf("y pos (pwm): %d\n",y_pix_to_pwm(p.y));
-                                last_fired++;
-                            }
-                            if(prev_max_count > 10 && last_fired > 10){
-                                                            fire();
-                                                            last_fired = 0;
-                            }
+                        if(prev_max_count > 10 && last_fired > 10){
+                            printf("firing at target: %d", cur_max);
+                            fire();
+                            last_fired = 0;
                         }
                     }
                 }
             }
+        }
 
 
 
@@ -257,10 +252,10 @@ static int RunBlobTrackingAuto()
                 int c = cvRound(255*pTracker->GetState(CV_BLOB_ID(pB)));
 
                 cvEllipse( pI,
-                    p,
-                    s,
-                    0, 0, 360,
-                    CV_RGB(c,255-c,0), cvRound(1+(3*0)/255), CV_AA, 8 );
+                        p,
+                        s,
+                        0, 0, 360,
+                        CV_RGB(c,255-c,0), cvRound(1+(3*0)/255), CV_AA, 8 );
                 p.x >>= 8;
                 p.y >>= 8;
                 s.width >>= 8;
@@ -292,14 +287,12 @@ static int RunBlobTrackingAuto()
                 }
 
             }/* next blob */;
-		cvCvtColor( pI, gtkMask, CV_BGR2RGB );
+            cvCvtColor( pI, gtkMask, CV_BGR2RGB );
 
-//            cvNamedWindow( "FG",0);
-//            cvShowImage( "FG",pFG);
+            //            cvNamedWindow( "FG",0);
+            //            cvShowImage( "FG",pFG);
+            cvReleaseImage(&pI);
         }/* debug FG*/
-        }
-
-
     }/* main cicle */
 
     if(pFGAvi)cvReleaseVideoWriter( &pFGAvi );
@@ -438,7 +431,7 @@ int blobtrack_init(void)
     {/* set default parameters for one processing */
         if(!bt_corr) bt_corr = "none";
         if(!fg_name) fg_name = FGDetector_Modules[0].nickname;
-        if(!bd_name) bd_name = BlobDetector_Modules[0].nickname;
+        if(!bd_name) bd_name = BlobDetector_Modules[1].nickname;
         if(!bt_name) bt_name = BlobTracker_Modules[0].nickname;
         if(!btpp_name) btpp_name = BlobTrackPostProc_Modules[0].nickname;
         if(!bta_name) bta_name = BlobTrackAnalysis_Modules[0].nickname;
