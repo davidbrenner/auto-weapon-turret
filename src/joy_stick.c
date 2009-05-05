@@ -132,6 +132,15 @@ void *joy_thread_function(void * ptr)
                 case JS_EVENT_BUTTON:
                     pad.bPos[pad.ev.number] = pad.ev.value;
                     pad.changed = 1;
+                    if((pGuiModel->cStatus & CALIBRATE) == CALIBRATE){
+                        if(pad.bPos[1] == 1){
+                            x_pwm_cal[cur_cal] = servo.xPos;
+                            y_pwm_cal[cur_cal] = servo.yPos;
+                            printf("---- calibrated: x,y pix: %d,%d = x,y pwm: %d,%d\n",x_pix_cal[cur_cal], y_pix_cal[cur_cal], x_pwm_cal[cur_cal], y_pwm_cal[cur_cal]);
+                            printf("cur cal: %d",cur_cal);
+                            cur_cal++;
+                        }
+                    }
                     break;
                 default:
                     printf ("Other event ? %d\nnumber=%d\nvalue=%d\n",
@@ -218,23 +227,23 @@ void *fire_thread_function(void * ptr)
             pthread_cond_wait( &joystick_mode_cond, &joystick_mode_mutex );
         }
         pthread_mutex_unlock( &joystick_mode_mutex );
-		if((pGuiModel->cStatus & MODE) == USER)
-		{
-			if(pad.bPos[0] == 1 && !firing)
-		    {
-		    	fire();
-		        firing = 1;
-		    }
-		    else if(pad.bPos[0] == 0 && firing)
-		    {
-		        firing = 0;
-		    }
-		    sched_yield();
-		}
-		else
-		{
-			sched_yield();
-		}
+        if((pGuiModel->cStatus & MODE) == USER)
+        {
+            if(pad.bPos[0] == 1 && !firing)
+            {
+                fire();
+                firing = 1;
+            }
+            else if(pad.bPos[0] == 0 && firing)
+            {
+                firing = 0;
+            }
+            sched_yield();
+        }
+        else
+        {
+            sched_yield();
+        }
     }
     return 0;
 }
@@ -251,34 +260,34 @@ void *y_axis_thread_function(void * ptr)
             pthread_cond_wait( &joystick_mode_cond, &joystick_mode_mutex );
         }
         pthread_mutex_unlock( &joystick_mode_mutex );
-		if((pGuiModel->cStatus & MODE) == USER)
-		{	
-		    tmpPos = pad.aPos[1];
-		    if(tmpPos !=0){
-		        sleep_t = -14.893*abs(tmpPos)+ 500015;
-		        if(tmpPos > 0){
-		            if(servo.yPos > MIN_Y_PWM){
-		                servo.yPos--;
-		            }
-		        }else if(tmpPos < 0){
-		            if(servo.yPos < MAX_Y_PWM){
-		                servo.yPos++;
-		            }
-		        }
+        if((pGuiModel->cStatus & MODE) == USER)
+        {	
+            tmpPos = pad.aPos[1];
+            if(tmpPos !=0){
+                sleep_t = -14.893*abs(tmpPos)+ 500015;
+                if(tmpPos > 0){
+                    if(servo.yPos > MIN_Y_PWM){
+                        servo.yPos--;
+                    }
+                }else if(tmpPos < 0){
+                    if(servo.yPos < MAX_Y_PWM){
+                        servo.yPos++;
+                    }
+                }
 
-		        //            printf("===y_axis moving\n");
-		        //            printf("x_axis current position: %d\n",servo.xPos);
-		        //            printf("y_axis current position: %d\n",servo.yPos);
+                //            printf("===y_axis moving\n");
+                //            printf("x_axis current position: %d\n",servo.xPos);
+                //            printf("y_axis current position: %d\n",servo.yPos);
 
-		        move_y(servo.yPos);
-		        usleep(sleep_t);
-		    }
-		    sched_yield();
-		}
-		else
-		{
-			sched_yield();
-		}
+                move_y(servo.yPos);
+                usleep(sleep_t);
+            }
+            sched_yield();
+        }
+        else
+        {
+            sched_yield();
+        }
     }
     return 0;
 }

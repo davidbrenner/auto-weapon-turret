@@ -37,7 +37,6 @@ void SetPassword(const char* pcPassword)
 		digest = MDString(pcPassword);
 		for (i = 0; i < 16; i++)
 		{
-		
 			fprintf (fp,"%02x", digest[i]);
 		}
 		fclose(fp);
@@ -45,6 +44,7 @@ void SetPassword(const char* pcPassword)
 	else
 	{
 		/*TODO: Display error */
+        printf(stderr,"Cannot open password file!\n");
 	}
 	
 } /* SetPassword */

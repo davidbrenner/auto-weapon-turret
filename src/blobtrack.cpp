@@ -19,8 +19,6 @@ static pthread_t tracker_thread;
 int prev_max = -1;
 int prev_max_count = 0;
 int last_fired = 0;
-int width;
-int height;
 
 /* list of FG DETECTION modules */
 static CvFGDetector* cvCreateFGDetector0(){return cvCreateFGDetectorBase(CV_BG_MODEL_FGD, NULL);}
@@ -172,17 +170,17 @@ static int RunBlobTrackingAuto()
         pImg = cvQueryFrame(pCap);
         //cvShowImage( "Tracking",pImg );
         if(pImg == NULL) break;
-        if((pGuiModel->cStatus & MODE) == USER){
-            /* Only display the image if we're in user mode (no processing) */
-            cvCvtColor( pImg, gtkMask, CV_BGR2RGB );
-        }else if((pGuiModel->cStatus & MODE) == CALIBRATE){
+        if((pGuiModel->cStatus & CALIBRATE) == CALIBRATE){
             /* If we're in calibrate mode, set coordinates and draw line to show current calibration pixel */
             int x1, x2, y1, y2;
             x1 = (x_pix_cal[cur_cal] - 10) >0 ? (x_pix_cal[cur_cal] - 10) : 0;
             y1 = (y_pix_cal[cur_cal] - 10) >0 ? (y_pix_cal[cur_cal] - 10) : 0;
             x2 = (x_pix_cal[cur_cal] + 10) < width ?  (x_pix_cal[cur_cal] - 10) : width;
             y2 = (y_pix_cal[cur_cal] + 10) < height ? (y_pix_cal[cur_cal] - 10) : height;
-            cvLine(pImg, cvPoint(x1,y1), cvPoint(x2,y2), cvScalar(0,255,0), 1);
+            cvLine(pImg, cvPoint(x1,y1), cvPoint(x2,y2), cvScalar(0,255,0), 15);
+            cvCvtColor( pImg, gtkMask, CV_BGR2RGB );
+        }else if((pGuiModel->cStatus & MODE) == USER){
+            /* Only display the image if we're in user mode (no processing) */
             cvCvtColor( pImg, gtkMask, CV_BGR2RGB );
         }else if((pGuiModel->cStatus & MODE) == AUTO){
             /* Process */

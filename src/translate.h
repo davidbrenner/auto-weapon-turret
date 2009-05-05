@@ -13,6 +13,9 @@
 #ifdef __cplusplus
 extern "C" {
 #endif
+
+/* Translate functions */
+void translate_init(void);
  
 /* Global Functions */
 void calibrate(int* piXpix,

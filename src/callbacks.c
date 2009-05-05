@@ -192,11 +192,12 @@ void on_calibrate_btn_clicked(GtkButton *button, gpointer user_data)
 		gtk_widget_hide((GtkWidget*) pCngPwButton);
 		gtk_widget_hide((GtkWidget*) pLockButton);
 		pGuiModel->cStatus |= CALIBRATE;
+        cur_cal = 0;
 	    gtk_widget_show((GtkWidget*) pCalText);
 	}
 	else
 	{
-		//calibrate(x_pix_cal, y_pix_cal, x_pwm_cal, y_pix_cal, cur_cal);
+		calibrate(x_pix_cal, y_pix_cal, x_pwm_cal, y_pwm_cal, cur_cal);
 		gtk_button_set_label((GtkButton*)pCalibrateBtn, "Calibrate");
 		gtk_widget_show((GtkWidget*) pTable1);
 		gtk_widget_show((GtkWidget*) pCngPwButton);

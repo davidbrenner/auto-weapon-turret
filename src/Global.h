@@ -13,7 +13,7 @@
 #define MIN_Y_PWM 980
 #define MAX_Y_PWM 1850
 
-#define NUM_CAL_POINTS 
+#define NUM_CAL_POINTS 64
 
 /* Gtk widgets that need to be accessed outside of Gtk thread */
 GtkWidget *pImage;
@@ -36,6 +36,7 @@ GtkWidget *pAutoButton;
 GtkWidget *pTable1;
 GtkWidget *pFixed1;
 GtkWidget *pCalibrateBtn;
+GtkWidget *pCalText;
 
 GladeXML *gxml;
 
@@ -68,5 +69,9 @@ int * y_pix_cal;
 int * x_pwm_cal;
 int * y_pwm_cal;
 int cur_cal;
+
+/* Webcam image size */
+int width;
+int height;
 
 #endif

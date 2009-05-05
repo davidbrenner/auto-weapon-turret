@@ -43,6 +43,7 @@
 #include "serial.h"
 #include "joy_stick.h"
 #include "blobtrack.h"
+#include "translate.h"
 
 
 /*
@@ -106,12 +107,14 @@ create_window (void)
 	pFixed1           = glade_xml_get_widget(gxml, "fixed1");
 	pCalibrateBtn     = glade_xml_get_widget(gxml, "calibrate_btn");
 	pCngPwButton      = glade_xml_get_widget(gxml, "btn_change_pwd");
+    pCalText                = glade_xml_get_widget(gxml, "cal_text");
 	return window;
 }
 
 int
 main (int argc, char *argv[])
 {
+    int i;
 	
 	/* Setup the GUI Model */
 	pGuiModel = NewGUIModel();
@@ -146,6 +149,9 @@ main (int argc, char *argv[])
 
     x_pix_cal = malloc(sizeof(int) * NUM_CAL_POINTS);
     y_pix_cal = malloc(sizeof(int) * NUM_CAL_POINTS);
+    x_pwm_cal = malloc(sizeof(int) * NUM_CAL_POINTS);
+    y_pwm_cal = malloc(sizeof(int) * NUM_CAL_POINTS);
+
 	
     /* Initialize serial */
     if(serial_init() != 0) return -1;
@@ -156,11 +162,49 @@ main (int argc, char *argv[])
     /* Setup autonomous blobtracker */
     if(adp_blobtrack_init() != 0) return -1;
 
+    printf("width: %d height %d\n",width,height);
+
+    /* Initialize calibration points */
+    cur_cal = 0;
+    x_pix_cal[0] = 0;
+    y_pix_cal[0] = 0;
+    x_pix_cal[1] = 0;
+    y_pix_cal[1] = height;
+    x_pix_cal[2] = width;
+    y_pix_cal[2] = 0;
+    x_pix_cal[3] = width;
+    y_pix_cal[3] = height;
+    x_pix_cal[4] = width/2;
+    y_pix_cal[4] = height/2;
+    x_pix_cal[5] = 20;
+    y_pix_cal[5] = height/2;
+    x_pix_cal[6] = width-20;
+    y_pix_cal[6] = height/2;
+    x_pix_cal[7] = width/2;
+    y_pix_cal[7] = 20;
+    x_pix_cal[7] = width/2;
+    y_pix_cal[7] = height-20;
+
+    srand(time(NULL));
+    for(i=8; i<NUM_CAL_POINTS; i++){
+        int value = ((float)rand()/RAND_MAX)*(height+1);
+        value = value>height ? 0 : value;
+        y_pix_cal[i] = value;
+        value = ((float)rand()/RAND_MAX)*(width+1);
+        value = value>width ? 0 : value;
+        x_pix_cal[i] = value;
+    }
+
+    /* Initialize calibration */
+    translate_init();
+
     /* Wait for webcam to settle */
     while(!draw_ready){ usleep(1); };
 
 	/* Main gui processing */
 	gtk_main ();
+
+    quit = 1;
 
     /* Cleanup blobtracker */
     adp_blobtrack_cleanup();
