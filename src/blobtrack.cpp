@@ -19,6 +19,8 @@ static pthread_t tracker_thread;
 int prev_max = -1;
 int prev_max_count = 0;
 int last_fired = 0;
+int width;
+int height;
 
 /* list of FG DETECTION modules */
 static CvFGDetector* cvCreateFGDetector0(){return cvCreateFGDetectorBase(CV_BG_MODEL_FGD, NULL);}
@@ -167,28 +169,32 @@ static int RunBlobTrackingAuto()
         IplImage*   pMask = NULL;
         pImg = NULL;
 
-        if(key!=-1)
-        {
-            OneFrameProcess = 1;
-            if(key=='r')OneFrameProcess = 0;
-        }
-
         pImg = cvQueryFrame(pCap);
         //cvShowImage( "Tracking",pImg );
         if(pImg == NULL) break;
+        if((pGuiModel->cStatus & MODE) == USER){
+            /* Only display the image if we're in user mode (no processing) */
+            cvCvtColor( pImg, gtkMask, CV_BGR2RGB );
+        }else if((pGuiModel->cStatus & MODE) == CALIBRATE){
+            /* If we're in calibrate mode, set coordinates and draw line to show current calibration pixel */
+            int x1, x2, y1, y2;
+            x1 = (x_pix_cal[cur_cal] - 10) >0 ? (x_pix_cal[cur_cal] - 10) : 0;
+            y1 = (y_pix_cal[cur_cal] - 10) >0 ? (y_pix_cal[cur_cal] - 10) : 0;
+            x2 = (x_pix_cal[cur_cal] + 10) < width ?  (x_pix_cal[cur_cal] - 10) : width;
+            y2 = (y_pix_cal[cur_cal] + 10) < height ? (y_pix_cal[cur_cal] - 10) : height;
+            cvLine(pImg, cvPoint(x1,y1), cvPoint(x2,y2), cvScalar(0,255,0), 1);
+            cvCvtColor( pImg, gtkMask, CV_BGR2RGB );
+        }else if((pGuiModel->cStatus & MODE) == AUTO){
+            /* Process */
+            pTracker->Process(pImg, pMask);
 
-
-        /* Process */
-        pTracker->Process(pImg, pMask);
-
-        if(pTracker->GetBlobNum()>0)
-        {/* draw detected blobs */
-            int i;
-            int max_size = 0;
-            int cur_max = -1;
-            int size_i = 0;
-            /* Make sure we're in autonomous mode */
-            if((pGuiModel->cStatus & MODE) == AUTO){
+            if(pTracker->GetBlobNum()>0)
+            {/* draw detected blobs */
+                int i;
+                int max_size = 0;
+                int cur_max = -1;
+                int size_i = 0;
+                /* Make sure we're in autonomous mode */
                 /* Iterate over all blobs to find the biggest */
                 for(i=pTracker->GetBlobNum();i>0;i--)
                 {
@@ -228,71 +234,72 @@ static int RunBlobTrackingAuto()
                     }
                 }
             }
-        }
 
 
 
-        /* draw debug info */
-        if(pImg)
-        {/* draw all inforamtion about tets sequence */
-            char        str[1024];
-            int         line_type = CV_AA; // change it to 8 to see non-antialiased graphics
-            CvFont      font;
-            int         i;
-            IplImage*   pI = cvCloneImage(pImg);
 
-            cvInitFont( &font, CV_FONT_HERSHEY_PLAIN, 0.7, 0.7, 0, 1, line_type );
+            /* draw debug info */
+            if(pImg)
+            {/* draw all inforamtion about tets sequence */
+                char        str[1024];
+                int         line_type = CV_AA; // change it to 8 to see non-antialiased graphics
+                CvFont      font;
+                int         i;
+                IplImage*   pI = cvCloneImage(pImg);
 
-            for(i=pTracker->GetBlobNum();i>0;i--)
-            {
-                CvSize  TextSize;
-                CvBlob* pB = pTracker->GetBlob(i-1);
-                CvPoint p = cvPoint(cvRound(pB->x*256),cvRound(pB->y*256));
-                CvSize  s = cvSize(MAX(1,cvRound(CV_BLOB_RX(pB)*256)), MAX(1,cvRound(CV_BLOB_RY(pB)*256)));
-                int c = cvRound(255*pTracker->GetState(CV_BLOB_ID(pB)));
+                cvInitFont( &font, CV_FONT_HERSHEY_PLAIN, 0.7, 0.7, 0, 1, line_type );
 
-                cvEllipse( pI,
-                        p,
-                        s,
-                        0, 0, 360,
-                        CV_RGB(c,255-c,0), cvRound(1+(3*0)/255), CV_AA, 8 );
-                p.x >>= 8;
-                p.y >>= 8;
-                s.width >>= 8;
-                s.height >>= 8;
-                sprintf(str,"%03d",CV_BLOB_ID(pB));
-                cvGetTextSize( str, &font, &TextSize, NULL );
-                p.y -= s.height;
-                cvPutText( pI, str, p, &font, CV_RGB(0,255,255));
+                for(i=pTracker->GetBlobNum();i>0;i--)
                 {
-                    char* pS = pTracker->GetStateDesc(CV_BLOB_ID(pB));
-                    if(pS)
+                    CvSize  TextSize;
+                    CvBlob* pB = pTracker->GetBlob(i-1);
+                    CvPoint p = cvPoint(cvRound(pB->x*256),cvRound(pB->y*256));
+                    CvSize  s = cvSize(MAX(1,cvRound(CV_BLOB_RX(pB)*256)), MAX(1,cvRound(CV_BLOB_RY(pB)*256)));
+                    int c = cvRound(255*pTracker->GetState(CV_BLOB_ID(pB)));
+
+                    cvEllipse( pI,
+                            p,
+                            s,
+                            0, 0, 360,
+                            CV_RGB(c,255-c,0), cvRound(1+(3*0)/255), CV_AA, 8 );
+                    p.x >>= 8;
+                    p.y >>= 8;
+                    s.width >>= 8;
+                    s.height >>= 8;
+                    sprintf(str,"%03d",CV_BLOB_ID(pB));
+                    cvGetTextSize( str, &font, &TextSize, NULL );
+                    p.y -= s.height;
+                    cvPutText( pI, str, p, &font, CV_RGB(0,255,255));
                     {
-                        char* pStr = strdup(pS);
-                        char* pStrFree = pStr;
-                        for(;pStr && strlen(pStr)>0;)
+                        char* pS = pTracker->GetStateDesc(CV_BLOB_ID(pB));
+                        if(pS)
                         {
-                            char* str_next = strchr(pStr,'\n');
-                            if(str_next)
+                            char* pStr = strdup(pS);
+                            char* pStrFree = pStr;
+                            for(;pStr && strlen(pStr)>0;)
                             {
-                                str_next[0] = 0;
-                                str_next++;
+                                char* str_next = strchr(pStr,'\n');
+                                if(str_next)
+                                {
+                                    str_next[0] = 0;
+                                    str_next++;
+                                }
+                                p.y += TextSize.height+1;
+                                cvPutText( pI, pStr, p, &font, CV_RGB(0,255,255));
+                                pStr = str_next;
                             }
-                            p.y += TextSize.height+1;
-                            cvPutText( pI, pStr, p, &font, CV_RGB(0,255,255));
-                            pStr = str_next;
+                            free(pStrFree);
                         }
-                        free(pStrFree);
                     }
-                }
 
-            }/* next blob */;
-            cvCvtColor( pI, gtkMask, CV_BGR2RGB );
+                }/* next blob */;
+                cvCvtColor( pI, gtkMask, CV_BGR2RGB );
 
-            //            cvNamedWindow( "FG",0);
-            //            cvShowImage( "FG",pFG);
-            cvReleaseImage(&pI);
-        }/* debug FG*/
+                //            cvNamedWindow( "FG",0);
+                //            cvShowImage( "FG",pFG);
+                cvReleaseImage(&pI);
+            }/* debug FG*/
+        }
     }/* main cicle */
 
     if(pFGAvi)cvReleaseVideoWriter( &pFGAvi );
@@ -452,14 +459,12 @@ int blobtrack_init(void)
         if( bta_name && MY_STRICMP(bta_name,pBTAnalysisModule->nickname)==0 ) break;
 
     pCap = cvCaptureFromCAM( CV_CAP_ANY );
+    width = cvGetCaptureProperty(pCap, CV_CAP_PROP_FRAME_WIDTH);
+    height = cvGetCaptureProperty(pCap, CV_CAP_PROP_FRAME_HEIGHT);
+
     printf("%f x %f\n", 
-            cvGetCaptureProperty(pCap, CV_CAP_PROP_FRAME_WIDTH),
-            cvGetCaptureProperty(pCap, CV_CAP_PROP_FRAME_HEIGHT));
-    cvSetCaptureProperty(pCap, CV_CAP_PROP_FRAME_WIDTH, 320);
-    cvSetCaptureProperty(pCap, CV_CAP_PROP_FRAME_HEIGHT, 240);
-    printf("%f x %f\n", 
-            cvGetCaptureProperty(pCap, CV_CAP_PROP_FRAME_WIDTH),
-            cvGetCaptureProperty(pCap, CV_CAP_PROP_FRAME_HEIGHT));
+            width,
+            height);
     if(pCap==NULL)
     {
         printf("Can't open %s file\n",avi_name);

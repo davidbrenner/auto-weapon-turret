@@ -143,6 +143,9 @@ main (int argc, char *argv[])
 	quit = 0;
 	
 	g_timeout_add( 50, (GtkFunction)time_handler, NULL );
+
+    x_pix_cal = malloc(sizeof(int) * NUM_CAL_POINTS);
+    y_pix_cal = malloc(sizeof(int) * NUM_CAL_POINTS);
 	
     /* Initialize serial */
     if(serial_init() != 0) return -1;

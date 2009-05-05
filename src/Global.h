@@ -13,6 +13,8 @@
 #define MIN_Y_PWM 980
 #define MAX_Y_PWM 1850
 
+#define NUM_CAL_POINTS 
+
 /* Gtk widgets that need to be accessed outside of Gtk thread */
 GtkWidget *pImage;
 GtkWidget *pChangePwdDialog;
@@ -59,5 +61,12 @@ char draw_ready;
 /* Mutexes used for joy stick threads suspend */
 pthread_mutex_t joystick_mode_mutex;
 pthread_cond_t joystick_mode_cond;
+
+/* Arrays to hold calibration data */
+int * x_pix_cal;
+int * y_pix_cal;
+int * x_pwm_cal;
+int * y_pwm_cal;
+int cur_cal;
 
 #endif
