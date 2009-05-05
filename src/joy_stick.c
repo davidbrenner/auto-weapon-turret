@@ -222,35 +222,7 @@ void *fire_thread_function(void * ptr)
 		{
 			if(pad.bPos[0] == 1 && !firing)
 		    {
-				printf("\r\ncStatus: %2x", pGuiModel->cStatus);
-				switch(pGuiModel->cStatus & CALIBRATE)
-				{
-					case S1:
-						//printf("\r\nMAX Y PWM CAL: %d", servo.yPos);
-						calibrate_y_max(servo.yPos);
-						pGuiModel->cStatus &= ~CALIBRATE;
-						pGuiModel->cStatus |= S2;
-						break;
-					case S2:
-				        //printf("\r\nMAX X PWM CAL: %d", servo.xPos);
-						calibrate_x_max(servo.xPos);
-						pGuiModel->cStatus &= ~CALIBRATE;
-						pGuiModel->cStatus |= S3;
-						break;
-					case S3:
-						//printf("\r\nMIN Y PWM CAL: %d", servo.yPos);
-						calibrate_y_min(servo.yPos);
-						pGuiModel->cStatus &= ~CALIBRATE;
-						pGuiModel->cStatus |= S4;
-						break;
-					case S4:
-						//printf("\r\nMIN X PWM CAL: %d", servo.xPos);
-						calibrate_x_min(servo.xPos);
-						break;
-					default:
-		    			fire();
-						break;
-				}
+		    	fire();
 		        firing = 1;
 		    }
 		    else if(pad.bPos[0] == 0 && firing)

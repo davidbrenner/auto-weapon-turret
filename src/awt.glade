@@ -156,6 +156,21 @@
                         <property name="position">2</property>
                       </packing>
                     </child>
+                    <child>
+                      <widget class="GtkTextView" id="cal_text">
+                        <property name="can_focus">True</property>
+                        <property name="editable">False</property>
+                        <property name="wrap_mode">word</property>
+                        <property name="justification">center</property>
+                        <property name="left_margin">4</property>
+                        <property name="right_margin">4</property>
+                        <property name="cursor_visible">False</property>
+                        <property name="text" translatable="yes">To calibrate, place a target at each location on the screen.  When you successfully hit the target, press the joystick1 button.  Click "done" when you are done.</property>
+                      </widget>
+                      <packing>
+                        <property name="position">3</property>
+                      </packing>
+                    </child>
                   </widget>
                   <packing>
                     <property name="expand">False</property>

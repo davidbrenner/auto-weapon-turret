@@ -17,12 +17,8 @@
  #define    LOCK            0x10
     #define UNLOCKED        0x00
     #define LOCKED          0x10
- #define    CALIBRATE       0xE0
+  #define    CALIBRATE       0x20
     #define DONE            0x00
-    #define S1              0x20
-    #define S2              0x40
-    #define S3              0x60
-	#define S4              0x80
  
  /* GUI Model struct */   
  struct model

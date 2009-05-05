@@ -12,56 +12,59 @@
 
  
 /* Private Variables */
-static int calibrated_x_min = 1205; 
-static int calibrated_x_max = 1533;
-static int calibrated_y_min = 1416;
-static int calibrated_y_max = 1240;
-static int max_x_coordinate = 640;
-static int max_y_coordinate = 480;
+static double mx;
+static double my;
+static double bx;
+static double by;
 
-/* Mutators */
-void calibrate_x_min(int iWidth)
+/* This function performs a linear interpolation estimation using */
+/* the least-squares approximation with the passed data.          */
+void calibrate(int* piXpxl,
+               int* piYpxl,
+               int* piXpwm,
+               int* piYpwm,
+               int  iSize)
 {
-	calibrated_x_min = iWidth;
-}
+    double SXx  = 0;
+    double SXxx = 0;
+    double SXxy = 0;
+    double SXy  = 0;
+    double SYx  = 0;
+    double SYxx = 0;
+    double SYxy = 0;
+    double SYy  = 0;
+    int i;
 
-void calibrate_x_max(int iWidth)
-{
-	calibrated_x_max = iWidth;
-}
+    for(i = 0; i < iSize; ++i)
+    {
+        SXx  += piXpxl[i];
+        SXxx += piXpxl[i]*piXpxl[i];
+        SXxy += piXpxl[i]*piXpwm[i];
+        SXy  += piXpwm[i];
 
-void calibrate_y_min(int iWidth)
-{
-	calibrated_y_min = iWidth;
-}
+        SYx  += piYpxl[i];
+        SYxx += piYpxl[i]*piYpxl[i];
+        SYxy += piYpxl[i]*piYpwm[i];
+        SYy  += piYpwm[i];
+    }
 
-void calibrate_y_max(int iWidth)
-{
-	calibrated_y_max = iWidth;
-}
+    mx = (iSize*SXxy-SXx*SXy)/(iSize*SXxx-SXx*SXx);
+    bx = (SXxx*SXy-SXxy*SXx)/(iSize*SXxx-SXx*SXx);
 
-void set_max_x_coordinate(int iMax)
-{
-	max_x_coordinate = iMax;
-}
 
-void set_max_y_coordinate(int iMax)
-{
-	max_y_coordinate = iMax;
+    my = (iSize*SYxy-SYx*SYy)/(iSize*SYxx-SYx*SYx);
+    by = (SYxx*SYy-SYxy*SYx)/(iSize*SYxx-SYx*SYx);
+
+
 }
  
 /* Functions to translate coordinates to pwm widths */
 int x_pix_to_pwm(int iCoordinate)
 {
-	double percent = (double)iCoordinate/max_x_coordinate;
-	double range   = (double)calibrated_x_max - (double)calibrated_x_min;
-	return (int) (percent*range)+calibrated_x_min;
+    return (int) (mx*iCoordinate + bx);
 }
 
 int y_pix_to_pwm(int iCoordinate)
 {
-	double percent = (double)iCoordinate/max_y_coordinate;
-	double range   = (double)calibrated_y_min - (double)calibrated_y_max;
-	return (int) (percent*range)+calibrated_y_max;
-
+    return (int) (my*iCoordinate + by);
 }
